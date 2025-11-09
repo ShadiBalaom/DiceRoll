@@ -10,7 +10,9 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 
-const PORT = Number(process.env.PORT || 4000);
+const PORT = process.env.NODE_ENV === 'production'
+  ? Number(process.env.PORT)
+  : Number(process.env.PORT || 4000);
 const HOST = process.env.HOST || '0.0.0.0';
 
 // Support DB_URL alias by mapping to Prisma's expected DATABASE_URL
@@ -121,7 +123,7 @@ async function start() {
   }
 
   app.listen(PORT, HOST, () => {
-    // Single-port dev server (API + frontend)
+    console.log(`Server listening on http://${HOST}:${PORT} (env=${process.env.NODE_ENV || 'development'})`);
   });
 }
 
