@@ -9,14 +9,16 @@ datasource db {
 
 model Question {
   id         String   @id @default(uuid())
-  question   String
-  answer     String
+  question   String   @db.VarChar(500)
+  answer     String   @db.VarChar(200)
   points     Int
   createdAt  DateTime @default(now())
 }
 
 model Student {
   id          String @id @default(uuid())
-  name        String
+  name        String @db.VarChar(100)
   totalPoints Int    @default(0)
+
+  @@unique([name], map: "student_name_unique")
 }
