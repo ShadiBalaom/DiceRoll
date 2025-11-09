@@ -5,16 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "npm run server:dev",
-    "build": "vite build",
+    "build": "vite build && tsc -p tsconfig.server.json",
     "preview": "vite preview",
     "server:dev": "tsx server/index.ts",
-    "start": "NODE_ENV=production tsx server/index.ts",
-    "postinstall": "prisma generate",
-    "db:up": "docker compose up -d",
-    "db:down": "docker compose down",
-    "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push",
-    "prisma:seed": "prisma db seed"
+    "start": "NODE_ENV=production node dist-server/index.js"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
@@ -33,7 +27,5 @@
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  }
+  "prisma": {}
 }
