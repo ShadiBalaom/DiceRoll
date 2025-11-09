@@ -168,13 +168,13 @@ const GameView: React.FC<GameViewProps> = ({
         <div className="flex-1 flex items-center justify-center">{welcomeOrMessage}</div>
       ) : (
         <>
-            <main className="flex-1 p-4 md:p-6 grid grid-cols-3 sm:grid-cols-4 gap-4 place-items-center">
+            <main className="flex-1 p-3 sm:p-4 md:p-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4 place-items-center">
                  {cardNumbers.map(num => {
                     const question = gameBoard.get(num)!;
                     const isFlipped = turnState.flippedCard === num;
                     const isShuffling = turnState.shuffling && turnState.flippedCard !== num;
                     return (
-                        <div key={num} className={`card-container w-full h-full aspect-square max-w-[150px] ${isFlipped ? 'flipped z-10' : ''}`}>
+                        <div key={num} className={`card-container w-full h-full aspect-square max-w-[120px] sm:max-w-[150px] ${isFlipped ? 'flipped z-10' : ''}`}>
                             <div className="card-inner">
                                 {/* Card Front */}
                                 <div className={`card-front bg-white border border-slate-300 rounded-lg flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ${isShuffling ? 'animate-card-shuffle' : ''} ${isFlipped ? 'scale-110' : ''}`}>
@@ -203,7 +203,7 @@ const GameView: React.FC<GameViewProps> = ({
                     );
                  })}
             </main>
-            <footer className="bg-slate-100 p-4 rounded-b-lg flex flex-col items-center justify-center text-center h-40">
+            <footer className="bg-slate-100 p-3 sm:p-4 rounded-b-lg flex flex-col items-center justify-center text-center h-32 sm:h-40">
                 {!answerResult ? (
                     <>
                         <h2 className="text-xl font-bold mb-2 text-sky-700">{activeStudent?.name}</h2>

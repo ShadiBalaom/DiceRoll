@@ -64,15 +64,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   const handleSaveQuestion = async () => {
-    if (editingItem && 'question' in editingItem) {
-      const updated = await api.updateQuestion(editingItem.id, { question: editingItem.question, answer: editingItem.answer, points: editingItem.points });
-      setQuestionBank(prev => prev.map(q => q.id === updated.id ? updated : q));
-    } else {
-      const created = await api.createQuestion(newQuestion);
-      setQuestionBank(prev => [...prev, created]);
-      setNewQuestion(INITIAL_QUESTION_STATE);
+    const payload = (editingItem && 'question' in editingItem)
+      ? { question: editingItem.question, answer: editingItem.answer, points: (editingItem as Question).points }
+      : newQuestion;
+
+    const msg = validateQuestion(payload);
+    if (msg) {
+      alert(msg);
+      return;
     }
-    setEditingItem(null);
+
+    try {
+      if (editingItem && 'question' in editingItem) {
+        const updated = await api.updateQuestion(editingItem.id, payload);
+        setQuestionBank(prev => prev.map(q => q.id === updated.id ? updated : q));
+      } else {
+        const created = await api.createQuestion(payload);
+        setQuestionBank(prev => [...prev, created]);
+        setNewQuestion(INITIAL_QUESTION_STATE);
+      }
+      setEditingItem(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to save question');
+    }
   };
 
   const handleDeleteQuestion = async (id: string) => {
@@ -121,15 +135,29 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   const handleSaveStudent = async () => {
-    if (editingItem && 'name' in editingItem) {
-      const updated = await api.updateStudent(editingItem.id, { name: editingItem.name, score: (editingItem as Student).score ?? 0 });
-      setStudents(prev => prev.map(s => s.id === updated.id ? updated : s));
-    } else {
-      const created = await api.createStudent({ name: newStudent.name, score: 0 });
-      setStudents(prev => [...prev, created]);
-      setNewStudent(INITIAL_STUDENT_STATE);
+    const payload = (editingItem && 'name' in editingItem)
+      ? { name: editingItem.name, score: (editingItem as Student).score ?? 0 }
+      : { name: newStudent.name, score: 0 };
+
+    const msg = validateStudent(payload);
+    if (msg) {
+      alert(msg);
+      return;
     }
-    setEditingItem(null);
+
+    try {
+      if (editingItem && 'name' in editingItem) {
+        const updated = await api.updateStudent(editingItem.id, payload);
+        setStudents(prev => prev.map(s => s.id === updated.id ? updated : s));
+      } else {
+        const created = await api.createStudent(payload);
+        setStudents(prev => [...prev, created]);
+        setNewStudent(INITIAL_STUDENT_STATE);
+      }
+      setEditingItem(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Failed to save student');
+    }
   };
 
   const handleDeleteStudent = async (id: string) => {
@@ -166,6 +194,30 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
     setStudents([]);
     setSelectedStudentIds(new Set<string>());
   };
+
+  // --- Validation helpers ---
+  function validateQuestion(q: Omit<Question, 'id'>): string | null {
+    const question = q.question.trim();
+    const answer = q.answer.trim();
+    const points = Number(q.points);
+    if (!question) return 'Question text is required.';
+    if (question.length > 500) return 'Question must be at most 500 characters.';
+    if (!answer) return 'Answer is required.';
+    if (answer.length > 200) return 'Answer must be at most 200 characters.';
+    if (!Number.isInteger(points)) return 'Points must be an integer.';
+    if (points < 0 || points > 100) return 'Points must be between 0 and 100.';
+    return null;
+  }
+
+  function validateStudent(s: Omit<Student, 'id'>): string | null {
+    const name = s.name.trim();
+    const score = Number(s.score ?? 0);
+    if (!name) return 'Student name is required.';
+    if (name.length > 100) return 'Student name must be at most 100 characters.';
+    if (!Number.isInteger(score)) return 'Score must be an integer.';
+    if (score < 0) return 'Score cannot be negative.';
+    return null;
+  }
 
   const handleResetScores = async () => {
     if (window.confirm(t.resetAllScoresConfirmation)) {
@@ -454,23 +506,23 @@ const AdminPanel: React.FC<AdminPanelProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" dir={language === 'he' ? 'rtl' : 'ltr'}>
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[90vh] flex flex-col">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-2 sm:p-4" dir={language === 'he' ? 'rtl' : 'ltr'}>
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[92vh] sm:h-[90vh] flex flex-col">
         <header className="p-4 flex justify-between items-center border-b border-slate-200 flex-shrink-0">
           <h2 className="text-2xl font-bold text-sky-700">{t.adminPanelTitle}</h2>
           <button onClick={onClose} className="text-slate-500 hover:text-slate-700">
             <CloseIcon className="w-8 h-8" />
           </button>
         </header>
-        <div className="flex flex-1 overflow-hidden">
-            <nav className="w-1/4 border-r border-slate-200 p-4 flex-shrink-0">
-                <ul className="space-y-2">
-                    <li><button onClick={() => setActiveTab('settings')} className={`w-full text-left p-2 rounded ${activeTab === 'settings' ? 'bg-sky-100 text-sky-700' : 'hover:bg-slate-100'}`}>{t.gameSettings}</button></li>
-                    <li><button onClick={() => setActiveTab('questions')} className={`w-full text-left p-2 rounded ${activeTab === 'questions' ? 'bg-sky-100 text-sky-700' : 'hover:bg-slate-100'}`}>{t.questionBank}</button></li>
-                    <li><button onClick={() => setActiveTab('students')} className={`w-full text-left p-2 rounded ${activeTab === 'students' ? 'bg-sky-100 text-sky-700' : 'hover:bg-slate-100'}`}>{t.manageStudents}</button></li>
+        <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
+            <nav className="w-full md:w-1/4 border-b md:border-b-0 md:border-r border-slate-200 p-3 sm:p-4 flex-shrink-0">
+                <ul className="flex md:block gap-2 md:gap-0 overflow-x-auto md:overflow-visible">
+                    <li className="flex-shrink-0 md:flex-shrink"><button onClick={() => setActiveTab('settings')} className={`w-full text-left p-2 rounded ${activeTab === 'settings' ? 'bg-sky-100 text-sky-700' : 'hover:bg-slate-100'}`}>{t.gameSettings}</button></li>
+                    <li className="flex-shrink-0 md:flex-shrink"><button onClick={() => setActiveTab('questions')} className={`w-full text-left p-2 rounded ${activeTab === 'questions' ? 'bg-sky-100 text-sky-700' : 'hover:bg-slate-100'}`}>{t.questionBank}</button></li>
+                    <li className="flex-shrink-0 md:flex-shrink"><button onClick={() => setActiveTab('students')} className={`w-full text-left p-2 rounded ${activeTab === 'students' ? 'bg-sky-100 text-sky-700' : 'hover:bg-slate-100'}`}>{t.manageStudents}</button></li>
                 </ul>
             </nav>
-            <main className="flex-1 p-6 overflow-y-auto">
+            <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
                 {renderTabContent()}
             </main>
         </div>
