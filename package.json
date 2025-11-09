@@ -8,6 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "server:dev": "tsx server/index.ts",
+    "start": "NODE_ENV=production tsx server/index.ts",
+    "postinstall": "prisma generate",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "prisma:generate": "prisma generate",

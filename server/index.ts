@@ -104,6 +104,20 @@ async function start() {
         res.status(500).end('Internal Server Error');
       }
     });
+  } else {
+    // In production, serve the built frontend from /dist
+    const distPath = path.resolve('dist');
+    const indexHtml = path.resolve(distPath, 'index.html');
+    app.use(express.static(distPath));
+
+    app.get('*', async (_req, res) => {
+      try {
+        const html = await fs.readFile(indexHtml, 'utf-8');
+        res.status(200).set({ 'Content-Type': 'text/html' }).end(html);
+      } catch {
+        res.status(500).end('Internal Server Error');
+      }
+    });
   }
 
   app.listen(PORT, HOST, () => {
