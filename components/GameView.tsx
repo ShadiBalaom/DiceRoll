@@ -46,6 +46,8 @@ const GameView: React.FC<GameViewProps> = ({
   const [userAnswer, setUserAnswer] = useState('');
   const [rollCount, setRollCount] = useState(0);
 
+  const flippedQuestion = turnState.flippedCard ? gameBoard.get(turnState.flippedCard) ?? null : null;
+
   const cardNumbers = Array.from(gameBoard.keys());
 
   useEffect(() => {
@@ -174,7 +176,7 @@ const GameView: React.FC<GameViewProps> = ({
                     const isFlipped = turnState.flippedCard === num;
                     const isShuffling = turnState.shuffling && turnState.flippedCard !== num;
                     return (
-                        <div key={num} className={`card-container w-full h-full aspect-square max-w-[120px] sm:max-w-[150px] ${isFlipped ? 'flipped z-10' : ''}`}>
+                        <div key={num} className={`card-container w-full h-full aspect-square max-w-[160px] sm:max-w-[200px] ${isFlipped ? 'flipped z-10' : ''}`}>
                             <div className="card-inner">
                                 {/* Card Front */}
                                 <div className={`card-front bg-white border border-slate-300 rounded-lg flex flex-col items-center justify-center shadow-lg transition-transform duration-300 ${isShuffling ? 'animate-card-shuffle' : ''} ${isFlipped ? 'scale-110' : ''}`}>
@@ -183,7 +185,7 @@ const GameView: React.FC<GameViewProps> = ({
                                 </div>
                                 {/* Card Back */}
                                 <div className="card-back bg-sky-50 border border-sky-200 rounded-lg p-3 flex flex-col shadow-lg">
-                                    <p className="text-sm font-semibold flex-1 overflow-y-auto">{question.question}</p>
+                                    <p className="text-xs sm:text-sm font-semibold flex-1 overflow-y-auto">{question.question}</p>
                                     <form onSubmit={handleSubmitAnswer} className="mt-2">
                                         <input
                                             type="text"
@@ -203,6 +205,32 @@ const GameView: React.FC<GameViewProps> = ({
                     );
                  })}
             </main>
+            {/* Mobile overlay for question readability */}
+            {flippedQuestion && (
+              <div className="fixed inset-0 bg-black/50 z-20 flex items-center justify-center md:hidden">
+                <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-sm p-4">
+                  <p className="text-base font-semibold mb-2 text-slate-800">{flippedQuestion.question}</p>
+                  <form onSubmit={handleSubmitAnswer}>
+                    <input
+                      type="text"
+                      value={userAnswer}
+                      onChange={(e) => setUserAnswer(e.target.value)}
+                      placeholder={t.yourAnswer}
+                      className="w-full bg-white border border-slate-300 rounded p-2 text-slate-800"
+                      autoFocus
+                    />
+                    <div className="flex gap-2 mt-2">
+                      <button type="submit" className="flex-1 px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded">
+                        {t.submitAnswer}
+                      </button>
+                      <button type="button" onClick={() => setTurnState(prev => ({ ...prev, flippedCard: null }))} className="px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded">
+                        Close
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
             <footer className="bg-slate-100 p-3 sm:p-4 rounded-b-lg flex flex-col items-center justify-center text-center h-32 sm:h-40">
                 {!answerResult ? (
                     <>
