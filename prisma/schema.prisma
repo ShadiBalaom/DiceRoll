@@ -1,0 +1,22 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Question {
+  id         String   @id @default(uuid())
+  question   String
+  answer     String
+  points     Int
+  createdAt  DateTime @default(now())
+}
+
+model Student {
+  id          String @id @default(uuid())
+  name        String
+  totalPoints Int    @default(0)
+}

@@ -1,0 +1,5 @@
+{
+  "name": "ChemRoll: The Chemistry Dice Game",
+  "description": "An interactive, gamified learning tool for chemistry review. Teachers can create a custom question bank, and students roll digital dice to get a random review question. All data is stored locally in the browser.",
+  "requestFramePermissions": []
+}

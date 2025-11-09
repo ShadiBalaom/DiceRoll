@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChemRoll: The Chemistry Dice Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://aistudiocdn.com/react@^19.2.0",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+        "react/": "https://aistudiocdn.com/react@^19.2.0/"
+      }
+    }
+    </script>
+    <style>
+        @keyframes card-shuffle {
+            0%, 100% { transform: translate(0, 0) rotate(0); }
+            25% { transform: translate(5px, -5px) rotate(2deg); }
+            50% { transform: translate(-5px, 5px) rotate(-2deg); }
+            75% { transform: translate(3px, 3px) rotate(1deg); }
+        }
+        .animate-card-shuffle {
+            animation: card-shuffle 0.5s ease-in-out;
+        }
+        .card-container {
+            perspective: 1000px;
+        }
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        .card-container.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* --- 3D Dice Styles --- */
+        .die-container {
+            width: 64px;
+            height: 64px;
+            perspective: 1200px;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+        }
+        .die-cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); /* Smooth landing */
+        }
+        .die-face {
+            position: absolute;
+            width: 64px;
+            height: 64px;
+            border-radius: 10px; /* Rounded corners */
+            background-image: radial-gradient(circle at 30% 30%, #ffffff, #e8e8e8);
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.2), inset 0 2px 2px rgba(255,255,255,0.5);
+        }
+        .pip {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #1a1a1a;
+            box-shadow: inset 0 2px 3px rgba(0,0,0,0.6); /* Indented look */
+        }
+
+        /* Face positioning in 3D space */
+        .face-front  { transform: rotateY(  0deg) translateZ(32px); }
+        .face-back   { transform: rotateY(180deg) translateZ(32px); }
+        .face-right  { transform: rotateY( 90deg) translateZ(32px); }
+        .face-left   { transform: rotateY(-90deg) translateZ(32px); }
+        .face-top    { transform: rotateX( 90deg) translateZ(32px); }
+        .face-bottom { transform: rotateX(-90deg) translateZ(32px); }
+
+        /* Final resting positions, angled for 3D effect */
+        .show-1 { transform: rotateY(   0deg) rotateX(-5deg) rotateY(-5deg); }
+        .show-6 { transform: rotateY( 180deg) rotateX( 5deg) rotateY( 5deg); }
+        /* Corrected orientations to bring the intended face to the front */
+        .show-2 { transform: rotateY(  90deg) rotateX(-5deg); }  /* left face to front */
+        .show-5 { transform: rotateY( -90deg) rotateX(-5deg); }  /* right face to front */
+        .show-3 { transform: rotateX( -90deg) rotateY(-5deg); }  /* top face to front */
+        .show-4 { transform: rotateX(  90deg) rotateY( 5deg); }  /* bottom face to front */
+
+        /* Keyframe animation for a 3D tumble */
+        @keyframes roll-3d {
+            0%   { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            100% { transform: rotateX(1440deg) rotateY(1080deg) rotateZ(720deg); }
+        }
+        .animate-roll-3d {
+            animation: roll-3d 1s ease-out;
+        }
+
+        /* Pip layouts using CSS Grid */
+        .die-face-content {
+            width: 100%;
+            height: 100%;
+            padding: 8px;
+            display: grid;
+            box-sizing: border-box;
+            grid-template-areas:
+                "a . c"
+                "e g f"
+                "d . b";
+        }
+        .face-1 .pip:nth-child(1) { grid-area: g; }
+        .face-2 .pip:nth-child(1) { grid-area: a; }
+        .face-2 .pip:nth-child(2) { grid-area: b; }
+        .face-3 .pip:nth-child(1) { grid-area: a; }
+        .face-3 .pip:nth-child(2) { grid-area: g; }
+        .face-3 .pip:nth-child(3) { grid-area: b; }
+        .face-4 .pip:nth-child(1) { grid-area: a; }
+        .face-4 .pip:nth-child(2) { grid-area: c; }
+        .face-4 .pip:nth-child(3) { grid-area: d; }
+        .face-4 .pip:nth-child(4) { grid-area: b; }
+        .face-5 .pip:nth-child(1) { grid-area: a; }
+        .face-5 .pip:nth-child(2) { grid-area: c; }
+        .face-5 .pip:nth-child(3) { grid-area: g; }
+        .face-5 .pip:nth-child(4) { grid-area: d; }
+        .face-5 .pip:nth-child(5) { grid-area: b; }
+        .face-6 .pip:nth-child(1) { grid-area: a; }
+        .face-6 .pip:nth-child(2) { grid-area: c; }
+        .face-6 .pip:nth-child(3) { grid-area: e; }
+        .face-6 .pip:nth-child(4) { grid-area: f; }
+        .face-6 .pip:nth-child(5) { grid-area: d; }
+        .face-6 .pip:nth-child(6) { grid-area: b; }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-white text-slate-800">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
