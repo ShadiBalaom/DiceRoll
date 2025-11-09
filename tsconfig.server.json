@@ -6,7 +6,8 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "target": "ES2022",
-    "sourceMap": false
+    "sourceMap": false,
+    "allowImportingTsExtensions": false
   },
   "include": [
     "server/**/*.ts"
